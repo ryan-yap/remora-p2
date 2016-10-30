@@ -1,80 +1,98 @@
 FORMAT: 1A
-HOST: http://www.remora.com/
+HOST: http://www.polaride.com/
 
-# Remora
+# Polaride
 
-Polls is a simple API allowing consumers to view polls and vote in them.
+A car polling application
 
-## User [/users]
+## User [/mobile/user]
 
-### Login [GET]
+### √ Login [POST]
 
-+ Response 200 (application/json)
-
-        [
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 2048
-                    }, {
-                        "choice": "Python",
-                        "votes": 1024
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 512
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 256
-                    }
-                ]
-            }
-        ]
-
-### Create a New Question [POST]
-
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
+The user will be created if does not exist in the system. The same client_id is returned and a session cookie is set if successful.
 
 + Request (application/json)
 
         {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
+            "loginMethod": "facebook",
+            "userId": "user_id",
+            "userToken": "user_token"
         }
 
-+ Response 201 (application/json)
++ Response 200 (application/json)
 
     + Headers
-
-            Location: /questions/2
+    
+            set-cookie: polarride=session_cookie; Secure;
 
     + Body
 
             {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
-                    }
-                ]
+                "userId": "user_id",
+                "email": "daniel@polaride.com",
+                "session": true
             }
+            
++ Response 401 (application/json)
+
+    + Headers
+    
+            Set-Cookie: polarride=null; Secure;
+
+    + Body
+
+            {
+                "userId": "user_id",
+                "session": false
+            }
+
+### Register [PUT]
+
+
+
+### √ Logout [DELETE]
+
+Session is destroyed on logout.
+
++ Response 200 (application/json)
+
+    + Headers
+    
+            Set-Cookie: polarride=null; Secure;
+            
+    + Body
+
+            {
+                "clientId": "client_id"
+                "session": false
+            }
+
+### √ Check Session [GET]
+
+Check if the session is open with polaride server. A closed session requires login.
+
++ Response 200 (application/json)
+
+        {
+            "session": false
+        }
+        
+## Schedule [/schedule]
+
+### Get My Schedule [GET]
+
++  Request 200 (application/json)
+        { 
+            "passengerID": "1626730954323019",
+            "number_of_seat": 1,
+            "flexibility_early": 1470728606.856591,
+            "fromLatitude": 49.28239320918291,
+            "flexibility_late": 1470729206.856591,
+            "time": 1470728906.856591,
+            "passenger_fare": 3.9,
+            "toLatitude": 49.23278406018312,
+            "driver_fare": 3.22,
+            "fromLongitude": -123.1185486540198,
+            "toLongtitude": -123.1270847842097,
+            "type": "Need a ride" 
+        }
