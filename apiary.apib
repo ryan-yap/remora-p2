@@ -9,7 +9,9 @@ A car polling application
 
 ### √ Login [POST]
 
-The user will be created if does not exist in the system. The same client_id is returned and a session cookie is set if successful.
+The user will be created if does not exist in the system. 
+The same client_id and email is returned with a session cookie if successful.
+If unsuccessful, may retry with PUT request with additional phoneNumber input field.
 
 + Request (application/json)
 
@@ -46,9 +48,45 @@ The user will be created if does not exist in the system. The same client_id is 
                 "session": false
             }
 
-### Register [PUT]
+### √ Register [PUT]
 
+If a user logs in and does not yet have an account, use this request and include the phone number.
 
++ Request (application/json)
+
+        {
+            "loginMethod": "facebook",
+            "userId": "user_id",
+            "userToken": "user_token",
+            "phoneNumber": "1234561234"
+        }
+
++ Response 200 (application/json)
+
+    + Headers
+    
+            set-cookie: polarride=session_cookie; Secure;
+
+    + Body
+
+            {
+                "userId": "user_id",
+                "email": "daniel@polaride.com",
+                "session": true
+            }
+            
++ Response 401 (application/json)
+
+    + Headers
+    
+            Set-Cookie: polarride=null; Secure;
+
+    + Body
+
+            {
+                "userId": "user_id",
+                "session": false
+            }
 
 ### √ Logout [DELETE]
 
@@ -79,20 +117,124 @@ Check if the session is open with polaride server. A closed session requires log
         
 ## Schedule [/schedule]
 
-### Get My Schedule [GET]
+### √ Get My Rides [GET /schedule/rides/{:id}]
+        
++ Response 200 (application/json)
 
-+  Request 200 (application/json)
-        { 
-            "passengerID": "1626730954323019",
-            "number_of_seat": 1,
-            "flexibility_early": 1470728606.856591,
-            "fromLatitude": 49.28239320918291,
-            "flexibility_late": 1470729206.856591,
+        {
+            "_id": "MongoID"
+            "passengerID": "54321",
+            "driverID": "12345",
+            "type": "request",
+            "seats": 1,
             "time": 1470728906.856591,
-            "passenger_fare": 3.9,
-            "toLatitude": 49.23278406018312,
-            "driver_fare": 3.22,
-            "fromLongitude": -123.1185486540198,
-            "toLongtitude": -123.1270847842097,
-            "type": "Need a ride" 
+            "flexibility": {
+                "early": 1470728906.856591,
+                "late": 1470728906.856591
+            },
+            "origin": {
+                "latitude": 49.28239320918291,
+                "longtitude": -123.1185486540198
+            },
+            "destination": {
+                "latitude": 49.28239320918291,
+                "longtitude": -123.1185486540198
+            },
+            "fare": {
+                "passenger": 3.90,
+                "driver": 3.22
+            }
+        }
+        
+### Get My Offers [GET /schedule/offers/{:id}]
+        
++ Response 200 (application/json)
+
+        {
+            "_id": "MongoID",
+            "driverID": "12345",
+            "type": "offer",
+            "request": ["requestID_1", "requestID_2"],
+            "seats": 1,
+            "time": 1470728906.856591,
+            "flexibility": {
+                "early": 1470728906.856591,
+                "late": 1470728906.856591
+            },
+            "origin": {
+                "latitude": 49.28239320918291,
+                "longtitude": -123.1185486540198
+            },
+            "destination": {
+                "latitude": 49.28239320918291,
+                "longtitude": -123.1185486540198
+            },
+            "fare": {
+                "passenger": 3.90,
+                "driver": 3.22
+            }
+        }
+
+### √ Make a Ride Request [POST /schedule/rides]
+
++ Request (application/json)
+
+        {
+            "passengerID": "54321",
+            "type": "request",
+            "seats": 1,
+            "time": 1470728906.856591,
+            "flexibility": {
+                "early": 1470728906.856591,
+                "late": 1470728906.856591
+            },
+            "origin": {
+                "latitude": 49.28239320918291,
+                "longtitude": -123.1185486540198
+            },
+            "destination": {
+                "latitude": 49.28239320918291,
+                "longtitude": -123.1185486540198
+            },
+            "fare": {
+                "passenger": 3.90,
+                "driver": 3.22
+            }
+        }
+
++ Response 200 (application/json)
+
+        {
+            "userId": "user_id",
+            "status": "requested"
+        }
+
+### √ Make a Ride Offer [POST /schedule/offers]
+
++ Request (application/json)
+
+        {
+            "driverID": "12345",
+            "type": "offer",
+            "seats": 4,
+            "time": 1470728906.856591,
+            "flexibility": {
+                "early": 1470728906.856591,
+                "late": 1470728906.856591
+            },
+            "origin": {
+                "latitude": 49.28239320918291,
+                "longtitude": -123.1185486540198
+            },
+            "destination": {
+                "latitude": 49.28239320918291,
+                "longtitude": -123.1185486540198
+            }
+        }
+
++ Response 200 (application/json)
+
+        {
+            "userId": "user_id",
+            "status": "offered"
         }
