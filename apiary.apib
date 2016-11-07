@@ -5,20 +5,21 @@ HOST: http://www.polaride.com/
 
 A car polling application
 
-## User [/mobile/user]
+## User [/user]
 
-### √ Login [POST]
-
-The user will be created if does not exist in the system. 
-The same client_id and email is returned with a session cookie if successful.
-If unsuccessful, may retry with PUT request with additional phoneNumber input field.
+### √ Login [POST /user/mobile/login]
 
 + Request (application/json)
 
         {
+            # can be 'facebook', 'google', 'twitter', or 'polaride'
             "loginMethod": "facebook",
+            # if using social loginMethod
             "userId": "user_id",
-            "userToken": "user_token"
+            "userToken": "user_token",
+            # if using polaride loginMethod
+            "email": "user_id",
+            "password": "user_token"
         }
 
 + Response 200 (application/json)
@@ -32,6 +33,9 @@ If unsuccessful, may retry with PUT request with additional phoneNumber input fi
             {
                 "userId": "user_id",
                 "email": "daniel@polaride.com",
+                "phoneNumber": "1234561234",
+                "homeAddress": "6808 Inverness St. Vancouver",
+                "workAddress": "555 W Hastings Vancouver",
                 "session": true
             }
             
@@ -44,20 +48,20 @@ If unsuccessful, may retry with PUT request with additional phoneNumber input fi
     + Body
 
             {
+                "session": false,
+                # if using social
                 "userId": "user_id",
-                "session": false
+                # if using polaride
+                "email": "daniel@polaride.com"
             }
 
-### √ Register [PUT]
-
-If a user logs in and does not yet have an account, use this request and include the phone number.
+### √ Polaride Signup [POST /user/mobile/signup]
 
 + Request (application/json)
 
         {
-            "loginMethod": "facebook",
-            "userId": "user_id",
-            "userToken": "user_token",
+            "email": "daniel@polaride.com",
+            "password": "encrypted_string",
             "phoneNumber": "1234561234"
         }
 
@@ -72,6 +76,9 @@ If a user logs in and does not yet have an account, use this request and include
             {
                 "userId": "user_id",
                 "email": "daniel@polaride.com",
+                "phoneNumber": "1234561234",
+                "homeAddress": "6808 Inverness St. Vancouver",
+                "workAddress": "555 W Hastings Vancouver",
                 "session": true
             }
             
@@ -84,13 +91,43 @@ If a user logs in and does not yet have an account, use this request and include
     + Body
 
             {
-                "userId": "user_id",
+                "email": "daniel@polaride.com",
                 "session": false
             }
 
-### √ Logout [DELETE]
+### √ Profile updates [PUT]
 
-Session is destroyed on logout.
++ Request (application/json)
+
+        {
+            "userId": "user_id",
+            # can be any one of these fields or more
+            "phoneNumber": "1234561234",
+            "homeAddress": "6808 Inverness St. Vancouver",
+            "workAddress": "555 W Hastings Vancouver"
+        }
+
++ Response 200 (application/json)
+
+    + Body
+
+            {
+                "userId": "user_id",
+                # returns only the fields in the request
+                "phoneNumber": "1234561234",
+                "homeAddress": "6808 Inverness St. Vancouver",
+                "workAddress": "555 W Hastings Vancouver"
+            }
+            
++ Response 401 (application/json)
+
+    + Body
+
+            {
+                "userId": "user_id"
+            }
+
+### √ Logout [DELETE]
 
 + Response 200 (application/json)
 
@@ -101,20 +138,39 @@ Session is destroyed on logout.
     + Body
 
             {
-                "clientId": "client_id"
+                "userId": "user_id",
                 "session": false
             }
 
 ### √ Check Session [GET]
-
-Check if the session is open with polaride server. A closed session requires login.
 
 + Response 200 (application/json)
 
         {
             "session": false
         }
-        
+
+### √ Register as a Driver [POST /user/driver]
+
++ Request (application/json)
+
+        {
+            "regNumber": "TBA 100",
+            "color": "pink",
+            "model": "Toyota Prius C",
+            "seats": 4,
+            "year": 2015
+        }
+
++ Response 200 (application/json)
+
+    + Body
+
+            {
+                "userId": "user_id",
+                "driver": true
+            }
+
 ## Schedule [/schedule]
 
 ### √ Get My Rides [GET /schedule/rides/{:id}]
@@ -146,7 +202,7 @@ Check if the session is open with polaride server. A closed session requires log
             }
         }
         
-### Get My Offers [GET /schedule/offers/{:id}]
+### √ Get My Offers [GET /schedule/offers/{:id}]
         
 + Response 200 (application/json)
 
@@ -154,7 +210,14 @@ Check if the session is open with polaride server. A closed session requires log
             "_id": "MongoID",
             "driverID": "12345",
             "type": "offer",
-            "request": ["requestID_1", "requestID_2"],
+            "requests": [{
+                "id": "requestID_1",
+                "passengerID": "54321"
+            },
+            {
+                "id": "requestID_2",
+                "passengerID": "54320"
+            }],
             "seats": 1,
             "time": 1470728906.856591,
             "flexibility": {
